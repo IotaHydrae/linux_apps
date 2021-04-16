@@ -1,0 +1,76 @@
+#include <string.h>
+#include <disp_manager.h>
+
+
+static pdisp_opr g_pdisp_opr = NULL;
+static pdisp_opr g_pdefault_disp_opr = NULL;
+static disp_buf g_tbuf;
+static int line_width, pixel_width;
+
+
+void register_disp_drivers(pdisp_opr popr)
+{
+    printf("register_disp_drivers\n");
+    popr->next = g_pdisp_opr;
+    g_pdisp_opr = popr;
+}
+
+int select_default_display(char *name)
+{
+    printf("select_default_display\n");
+    pdisp_opr tmp_disp_opr = g_pdisp_opr;
+    while(tmp_disp_opr)
+    {
+        if(strcmp(name, tmp_disp_opr->cName) == 0)
+        {
+            g_pdefault_disp_opr = tmp_disp_opr;
+            return 0;
+        }
+        tmp_disp_opr = tmp_disp_opr->next;
+    }
+    return -1;
+}
+
+int init_default_display(void)
+{
+    int ret;
+    printf("init_default_display device_init\n");
+    ret = g_pdefault_disp_opr->device_init();
+    if(ret < 0)
+    {
+        HANDLE_ERROR("err on device init!")
+    }
+    printf("init_default_display get_buffer\n");
+    ret = g_pdefault_disp_opr->get_buffer(&g_tbuf);
+    if(ret < 0)
+    {
+        HANDLE_ERROR("error on get buffer")
+    }
+    pixel_width = g_tbuf.iBpp / 8;
+    line_width  = g_tbuf.iXres * g_tbuf.iBpp / 8;
+    printf("init_default_display done!\n");
+    return 0;
+}
+
+pdisp_buf get_display_buffer()
+{
+    printf("get_display_buffer\n");
+    return &g_tbuf;
+}
+
+void put_pixel(int x, int y, unsigned int color)
+{
+    memcpy((unsigned char *)(g_tbuf.cBuf_base + y * line_width + x * pixel_width),
+           &color, sizeof(unsigned int));
+}
+
+int flush_display_area(pdisp_buf buf, pdisp_area area)
+{
+    return g_pdefault_disp_opr->flush_area(buf, area);
+}
+
+void display_init(void)
+{
+    printf("display_init\n");
+    FrameBufferInit();
+}
