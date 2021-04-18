@@ -1,0 +1,66 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides: nfsmount
+# Required-Start: 
+# Required-Stop: 
+# Default-Start: 2 3 4 5 
+# Default-Stop:
+# Short-Description: nfs mount service.
+### END INIT INFO
+
+
+
+if [ `id -u` -ne "0" ]; then
+	echo "ERROR: Permission denied." 1>&2
+	exit 1
+fi
+
+start(){
+	ifconfig down
+	ifconfig down
+	ifconfig eth0 192.168.137.241 broadcast 192.168.137.255
+}
+
+stop(){
+	if true; then
+		pkill start_ngrokd>/dev/null
+		pkill ngrokd>/dev/null
+	else
+		echo "Disable Stop ngrokd"
+	fi
+}
+
+restart(){
+	stop
+	start
+}
+
+
+case "$1" in
+	start)
+		echo "start ngrok service..."
+		start
+		sleep 1
+		status	
+	;;
+	stop)
+		echo "stoping ngrok service"
+		stop
+		status
+	;;
+	restart)
+		echo "restarting ngrok service"
+		stop 1
+		status
+		sleep 1
+		start 
+		status
+	;;
+
+	*)
+		echo $"Usage: $0 {start|stop|restart}"
+		exit 1
+	;;
+esac
+
+
