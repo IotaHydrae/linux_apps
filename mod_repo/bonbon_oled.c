@@ -2,7 +2,7 @@
 	bonbon_oled.c - another driver for oled, char device interface
 
 	Copyright (C) 2021-22 Zheng Hua <writeforever@foxmail.com>
-	
+
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation; either version 2 of the License, or
@@ -16,12 +16,11 @@
 	You should have received a copy of the GNU General Public License along
 	with this program; if not, write to the Free Software Foundation, Inc.,
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
 */
 
 #include <linux/init.h>
 #include <linux/kernel.h>
-#include <linux/ioctl.h> 
+#include <linux/ioctl.h>
 #include <linux/fs.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
@@ -49,10 +48,8 @@ struct bonbon_oled_dev{
 
 static int bonbon_oled_open(struct inode *inode, struct file *filp)
 {
-	
 	return 0;
 }
-
 
 static struct file_operations bonbon_oled_fops = {
 	.owner   = THIS_MODULE,
@@ -70,7 +67,7 @@ static void bonbon_cleanup(void)
 		class_destroy(bonbon_oled_class);
 	if(cdev_ok)
 		cdev_del(bonbon_cdev);
-	
+
 	unregister_chrdev_region(MKDEV(bonbon_oled_major, 0), 1);
 }
 
@@ -103,7 +100,7 @@ static __init int bonbon_oled_init(void)
 		result = alloc_chrdev_region(&bonbon_oled_devid, 0, bonbon_oled_nr_devs, "bonbon_oled");
 		bonbon_oled_major = MAJOR(bonbon_oled_devid);
 	}
-	
+
 	/* As for now. No driver operation has been connected to these device numbers. */
 	if(result<0){
 		printk(KERN_WARNING "%s: can't get major %d\n",__FUNCTION__, bonbon_oled_major);
@@ -121,11 +118,11 @@ static __init int bonbon_oled_init(void)
 	}
 
 	return 0;
-	
+
 fail:
 	bonbon_cleanup();
 	return result;
-	
+
 }
 
 static __exit void bonbon_oled_exit(void)
@@ -144,4 +141,3 @@ module_exit(bonbon_oled_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Zheng Hua <writeforever@foxmail.com>");
 MODULE_DESCRIPTION("I2C/ another driver for OLED");
-
