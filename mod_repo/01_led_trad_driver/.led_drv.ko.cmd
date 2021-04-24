@@ -1,1 +1,0 @@
-cmd_/home/book/source/imx6ull/my_drivers/01_led_trad_driver/led_drv.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/book/source/imx6ull/my_drivers/01_led_trad_driver/led_drv.ko /home/book/source/imx6ull/my_drivers/01_led_trad_driver/led_drv.o /home/book/source/imx6ull/my_drivers/01_led_trad_driver/led_drv.mod.o ;  true
