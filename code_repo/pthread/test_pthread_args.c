@@ -23,12 +23,16 @@ void *fun(void *data)
 void *fun2(void *data)
 {
 	int *a = (int *)data;
+		pthread_t tid = pthread_self();
+	printf("The tid of fun2 thread is %ld \n",tid);
 	printf("%s val of data %d\n",__FUNCTION__, *a);
 }
 
 void *fun3(void *data)
 {
 	int b = (int)(long)data;
+		pthread_t tid = pthread_self();
+	printf("The tid of fun3 thread is %ld \n",tid);
 	printf("%s val of data %d\n",__FUNCTION__, b);
 	
 }
