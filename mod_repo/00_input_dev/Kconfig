@@ -13,7 +13,7 @@ menuconfig INPUT_TOUCHSCREEN
 if INPUT_TOUCHSCREEN
 
 config TOUCHSCREEN_NS2009
-	tristate "I2C interface 4-wire resistive touch screen controller"
+	tristate "Nsiway NS2009 I2C interface 4-wire resistive touch screen controller"
 	depends on NS2009
 	help
 	  Say Y here if you have a NS2009 hooked to an I2C bus.
