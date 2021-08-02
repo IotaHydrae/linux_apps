@@ -1,8 +1,12 @@
-# SPDX-License-Identifier: GPL-2.0
-#
-# Makefile for the touchscreen drivers.
-#
+KERN_DIR = /home/book/100ask_imx6ull-sdk/Linux-4.9.88
+KERN_DIR = /home/yuanxin/source/linux-4.14.240
 
-# Each configuration option enables a list of files.
+all:
+	make -C $(KERN_DIR) M=`pwd` modules 
 
-obj-$(CONFIG_TOUCHSCREEN_NS2009)	+= ns2009.o
+clean:
+	make -C $(KERN_DIR) M=`pwd` modules clean
+	rm -rf modules.order
+
+# obj-m	+= bonbon_oled.o
+obj-m += ns2009.o
