@@ -26,6 +26,7 @@
 #include <linux/gpio.h>
 #include <linux/cdev.h>
 #include <linux/module.h>
+#include <linux/uaccess.h>
 
 /**
  * Replace CDEV_TEMPLATE or cdev_template to your device name.
@@ -40,33 +41,42 @@
 #define drv_wrn(msg) printk(KERN_WARNING "%s: "msg, __func__)
 #define drv_err(msg) printk(KERN_ERR "%s: "msg, __func__)
 
+#define CDEV_TEMPLATE_NUM 1
+#define CDEV_TEMPLATE_NAME "cdev_template"
+#define CDEV_TEMPLATE_CLASS "cdev_template_class"
+
 /* Make your device type here */
 struct cdev_template_device{
 	/* e.g. unsigned char vgram[1024]; */
 	struct cdev cdev;
 };
-struct cdev_template_device *cdev_template_devp;
+static struct cdev_template_device *cdev_template_devp;
 
 
-/* STATIC */
+/* static var here */
 static int cdev_ok;
-static int cdev_template_nr_devs = 1;
+/* static int cdev_template_nr_devs = 1; */
 static int cdev_template_major;
 static int cdev_template_minor;
 static dev_t cdev_template_devid;
 static struct class *cdev_template_class;
 static struct device *cdev_template_dev;
 
+static char kernel_buf[64];
 
-/* PROTOTYPE FOR DEVICE */
+
+/* prototype here for device */
 static int cdev_template_init(void);
 
 
-/* PROTOTYPE FOR DRIVER */
+/* prototype here for driver */
 static void cdev_template_cleanup(void);
 static int cdev_template_setup_cdev(struct cdev *dev);
 static int cdev_template_driver_open(struct inode *inode, struct file *filp);
-static int cdev_template_driver_read(struct file *, char __user *, size_t, loff_t *);
+static ssize_t cdev_template_driver_read(struct file *filp, char __user *buf, size_t len, loff_t *offset);
+static ssize_t cdev_template_driver_write(struct file *filp, const char __user *buf, size_t len, loff_t *offset);
+static int cdev_template_driver_release (struct inode *inode, struct file *filp);
+
 
 
 /* cdev self operations start */
@@ -78,14 +88,57 @@ static int cdev_template_init(void)
 /* cdev self operations end */
 
 
+
+static struct file_operations cdev_template_fops = {
+	.owner   = THIS_MODULE,
+	.open    = cdev_template_driver_open,
+	.read    = cdev_template_driver_read,
+	.write   = cdev_template_driver_write,
+	/*.unlocked_ioctl   = cdev_template_driver_ioctl,*/
+	.release = cdev_template_driver_release,
+};
+
+
+static int cdev_template_driver_open(struct inode *inode, struct file *filp)
+{
+	/*e.g. call cdev_template_init*/
+	drv_dbg("openned.");
+	return 0;
+}
+
+static ssize_t cdev_template_driver_read(struct file *filp, char __user *buf, size_t len, loff_t *offset)
+{
+	int ret;
+	drv_dbg("reading.");
+	ret = copy_to_user(buf, kernel_buf, len);
+	printk(KERN_DEBUG "%s\n", kernel_buf);
+	return ret;
+}
+
+static ssize_t cdev_template_driver_write(struct file *filp, const char __user *buf, size_t len, loff_t *offset)
+{
+	int ret;
+	drv_dbg("writing.");
+	ret = copy_from_user(kernel_buf, buf, len);
+	return ret;
+}
+
+
+static int cdev_template_driver_release (struct inode *inode, struct file *filp)
+{
+	drv_dbg("release.");
+
+	return 0;
+}
+
 static void cdev_template_cleanup(void)
 {
-	if(cdev_template_device)
+	if(cdev_template_dev)
 		device_destroy(cdev_template_class, MKDEV(cdev_template_major, 0));
 	if(cdev_template_class)
 		class_destroy(cdev_template_class);
 	if(cdev_ok)
-		cdev_del(bonbon_cdev);
+		cdev_del(&cdev_template_devp->cdev);
 
 	kfree(cdev_template_devp);
 	unregister_chrdev_region(MKDEV(cdev_template_major, 0), 1);
@@ -108,36 +161,6 @@ static int cdev_template_setup_cdev(struct cdev *dev)
 }
 
 
-static struct file_operations cdev_template_fops = {
-	.owner   = THIS_MODULE,
-	.open    = cdev_template_driver_open,
-	.read    = cdev_template_driver_read,
-	/*.unlocked_ioctl   = cdev_template_driver_ioctl,*/
-	.release = cdev_template_driver_release,
-};
-
-
-static int cdev_template_driver_open(struct inode *inode, struct file *filp)
-{
-	/*e.g. call cdev_template_init*/
-	drv_dbg("openned.");
-	return 0;
-}
-
-static ssize_t cdev_template_driver_read(struct file *, char __user *, size_t, loff_t *)
-{
-	drv_dbg("reading.");
-
-	return 0;
-}
-
-static int cdev_template_driver_release (struct inode *, struct file *)
-{
-	drv_dbg("release.");
-
-	return 0;
-}
-
 static __init int cdev_template_driver_init(void)
 {
 	int result;
@@ -147,9 +170,9 @@ static __init int cdev_template_driver_init(void)
 	/* Attempt to assign primary device number  */
 	if(cdev_template_major){
 		cdev_template_devid = MKDEV(cdev_template_major, cdev_template_minor);
-		result = register_chrdev_region(cdev_template_devid, cdev_template_nr_devs, "cdev_template");
+		result = register_chrdev_region(cdev_template_devid, CDEV_TEMPLATE_NUM, CDEV_TEMPLATE_NAME);
 	}else{
-		result = alloc_chrdev_region(&cdev_template_devid, 0, cdev_template_nr_devs, "cdev_template");
+		result = alloc_chrdev_region(&cdev_template_devid, 0, CDEV_TEMPLATE_NUM, CDEV_TEMPLATE_NAME);
 		cdev_template_major = MAJOR(cdev_template_devid);
 	}
 
@@ -167,14 +190,14 @@ static __init int cdev_template_driver_init(void)
 	}
 	memset(cdev_template_devp, 0, sizeof(struct cdev_template_device));
 	
-	result = cdev_template_setup_cdev(cdev_template_devp);
+	result = cdev_template_setup_cdev(&cdev_template_devp->cdev);
 	
-	cdev_template_class  = class_create(THIS_MODULE, "cdev_template");
+	cdev_template_class  = class_create(THIS_MODULE, CDEV_TEMPLATE_CLASS);
 	if(IS_ERR(cdev_template_class)){
 		return PTR_ERR(cdev_template_class);
 	}
 	cdev_template_dev = device_create(cdev_template_class, NULL, 
-							MKDEV(cdev_template_major, 0), NULL, "cdev_template");
+							MKDEV(cdev_template_major, 0), NULL, CDEV_TEMPLATE_NAME);
 	if(unlikely(IS_ERR(cdev_template_dev))){
 		return PTR_ERR(cdev_template_dev);
 	}

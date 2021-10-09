@@ -74,9 +74,9 @@ static int eeprom_setup_cdev(struct eeprom_device (*devp)[EEP_NBANK])
     printk(KERN_INFO "%s Setting up char dev.\n", __func__);
 
     for (i = 0; i < EEP_NBANK; i++) {
-        /*devp[i]->cdev = cdev_alloc();*/
+        /* devp[i]->cdev = cdev_alloc(); */
 
-        cdev_init(&devp[i]->cdev, &eeprom_fops);
+        cdev_init(devp[i]->cdev, &eeprom_fops);
         devp[i]->cdev.owner = THIS_MODULE;
 
         curr_dev = MKDEV(MAJOR(eeprom_devid), MINOR(eeprom_devid) + i);
@@ -129,7 +129,7 @@ static __init int eeprom_driver_init(void)
         result = -ENOMEM;
         goto fail;
     }
-    memset(eeprom_devp, 0, sizeof(struct eeprom_device) * EEP_NBANK); /* this can be removed when using kzalloc() */
+    //memset(eeprom_devp, 0, sizeof(struct eeprom_device) * EEP_NBANK); /* this can be removed when using kzalloc() */
 
     /* create the class of device, it will be create at `/sys/class` */
     eeprom_class = class_create(THIS_MODULE, EEP_CLASS);
