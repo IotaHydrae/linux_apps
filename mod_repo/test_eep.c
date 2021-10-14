@@ -76,7 +76,7 @@ static int eeprom_setup_cdev(struct eeprom_device (*devp)[EEP_NBANK])
     for (i = 0; i < EEP_NBANK; i++) {
         /* devp[i]->cdev = cdev_alloc(); */
 
-        cdev_init(devp[i]->cdev, &eeprom_fops);
+        cdev_init(&devp[i]->cdev, &eeprom_fops);
         devp[i]->cdev.owner = THIS_MODULE;
 
         curr_dev = MKDEV(MAJOR(eeprom_devid), MINOR(eeprom_devid) + i);

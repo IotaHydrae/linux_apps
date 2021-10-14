@@ -18,7 +18,7 @@
 static struct fb_info *myfb_info;
 
 static struct fb_ops myfb_ops = {
-	.owner = THIS_NODULE,
+	.owner = THIS_MODULE,
 	.fb_fillrect = cfb_fillrect,
 	.fb_copyarea = cfb_copyarea,
 	.fb_imageblit = cfb_imageblit,
@@ -53,7 +53,7 @@ int __init lcd_drv_init(void)
 	 * the `dma_alloc_wc` get the virtual memory start and space, same as kmalloc
 	 * but physical continuity is for `dma_alloc_wc` 
 	 */
-	myfb_info->screen_base = dma_alloc_wc(NULL, myfb_info.fix.smem_len, &phy_addr, GFP_KERNEL);
+	myfb_info->screen_base = dma_alloc_wc(NULL, myfb_info->fix.smem_len, &phy_addr, GFP_KERNEL);
 
 	myfb_info->fix.smem_start = phy_addr;
 
