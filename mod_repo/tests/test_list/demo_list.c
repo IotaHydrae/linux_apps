@@ -20,46 +20,64 @@
 
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/kernel.h>	/* for container_of */
-// #include <linux/gpio.h>		/* for kmalloc */
+#include <linux/kernel.h>	/* container_of */
+#include <linux/list.h>	/* for list */
+#include <linux/gpio.h> 	/* for kmalloc */
 
 #define drv_inf(msg) printk(KERN_INFO "%s: "msg ,__func__)
 #define drv_dbg(msg) printk(KERN_DEBUG "%s: "msg, __func__)
 #define drv_wrn(msg) printk(KERN_WARNING "%s: "msg, __func__)
 #define drv_err(msg) printk(KERN_ERR "%s: "msg, __func__)
 
-struct person {
-    int age;
-    char *name;
+struct car {
+	int door_number;
+	char *color;
+	char *model;
+	struct list_head list;
 };
 
-struct family {
-	struct person *father;
-	struct person *monther;
-	int number_of_suns;
-	int salary;
-}f;
-
+#ifdef TYPE_
+static LIST_HEAD(carlist);
 
 static __init int demo_init(void)
 {
-    struct person somebody = {
-        .age=12,
-	.name="karen",
-    };
+	struct car *redcar = kmalloc(sizeof(struct car), GFP_KERNEL);
+	struct car *bluecar = kmalloc(sizeof(struct car), GFP_KERNEL);
+	struct car *pinkcar = kmalloc(sizeof(struct car), GFP_KERNEL);
+	struct car *acar;
 
-    struct person *the_person;
+	INIT_LIST_HEAD(&redcar->list);
+	INIT_LIST_HEAD(&bluecar->list);
+	INIT_LIST_HEAD(&pinkcar->list);
 
-    printk("%s\n", somebody.name);
+	redcar->color = (char *)kmalloc(sizeof(char)*4, GFP_KERNEL);
+	redcar->color = "red";
+	redcar->model = (char *)kmalloc(sizeof(char)*4, GFP_KERNEL);
+	redcar->model = "psv";
 
-    printk("%lu\n", &somebody);
-    printk("%lu\n", &somebody.name);
-    char **the_name_ptr = &somebody.name;
-    printk("%lu\n", the_name_ptr);
+	bluecar->color = (char *)kmalloc(sizeof(char)*5, GFP_KERNEL);
+	bluecar->color = "blue";
+	bluecar->model = (char *)kmalloc(sizeof(char)*4, GFP_KERNEL);
+	bluecar->model = "npd";
 
-    the_person = container_of(the_name_ptr,struct person,name);
 
-    printk("the name of tmp->name after container_of: %s\n", the_person->name);
+	pinkcar->color = (char *)kmalloc(sizeof(char)*5, GFP_KERNEL);
+	pinkcar->color = "pink";
+	pinkcar->model = (char *)kmalloc(sizeof(char)*4, GFP_KERNEL);
+	pinkcar->model = "gba";
+
+	list_add(&redcar->list, &carlist);
+	list_add(&bluecar->list, &carlist);
+	list_add(&pinkcar->list, &carlist);
+
+
+	list_for_each_entry(acar, &carlist, list){
+		printk("--car-- color: %s\tmodel: %s\n", acar->color, acar->model);
+	}
+
+	kfree(redcar);
+	kfree(bluecar);
+	kfree(pinkcar);
 
     return 0;
 }
