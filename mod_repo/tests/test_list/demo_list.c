@@ -29,6 +29,8 @@
 #define drv_wrn(msg) printk(KERN_WARNING "%s: "msg, __func__)
 #define drv_err(msg) printk(KERN_ERR "%s: "msg, __func__)
 
+#define TYPE_DYNAMIC
+
 struct car {
 	int door_number;
 	char *color;
@@ -36,11 +38,17 @@ struct car {
 	struct list_head list;
 };
 
-#ifdef TYPE_
+#ifdef TYPE_STATIC
 static LIST_HEAD(carlist);
+#endif
 
 static __init int demo_init(void)
 {
+#ifdef TYPE_DYNAMIC
+	struct list_head carlist;
+	INIT_LIST_HEAD(&carlist);
+#endif
+
 	struct car *redcar = kmalloc(sizeof(struct car), GFP_KERNEL);
 	struct car *bluecar = kmalloc(sizeof(struct car), GFP_KERNEL);
 	struct car *pinkcar = kmalloc(sizeof(struct car), GFP_KERNEL);
@@ -68,7 +76,7 @@ static __init int demo_init(void)
 
 	list_add(&redcar->list, &carlist);
 	list_add(&bluecar->list, &carlist);
-	list_add(&pinkcar->list, &carlist);
+	list_add_tail(&pinkcar->list, &carlist);
 
 
 	list_for_each_entry(acar, &carlist, list){
