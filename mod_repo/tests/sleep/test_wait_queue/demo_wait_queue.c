@@ -38,6 +38,7 @@ static DECLARE_WAIT_QUEUE_HEAD(my_wq);
 static int condition = 0;
 #endif
 
+/* 声明工作队列 */
 static struct work_struct wrk;
 
 static void work_handler(struct work_struct *work)
@@ -45,7 +46,12 @@ static void work_handler(struct work_struct *work)
 	printk("Waitqueue module handler %s\n", __func__);
 	msleep(5000);
 	printk("Wake up the sleeping module\n");
-	// condition=1;
+	condition=1;
+
+	/** 
+	 * 若条件为true，则唤醒在等待队列中休眠的进程，
+	 * 本例中为condition
+	 */
 	wake_up_interruptible(&my_wq);
 }
 
@@ -53,14 +59,22 @@ static __init int demo_init(void)
 {
 #ifdef TYPE_DYNAMIC
 #undef TYPE_STATIC
+
+wait_queue_head_t my_wq;
+init_waitqueue_head(&my_wq);
+
 #endif
 
 	printk("Wait queue example\n");
 
 	INIT_WORK(&wrk, work_handler);
+
+	/* 将wrk放入 `kernel-global workqueue` */
 	schedule_work(&wrk);
 
 	printk("Going to sleep %s\n", __func__);
+
+	/* 如果条件为false，则阻塞等待队列中的当前任务（进程） */
 	wait_event_interruptible(my_wq, condition!=0);
 
 	pr_info("woken up by the work job\n");

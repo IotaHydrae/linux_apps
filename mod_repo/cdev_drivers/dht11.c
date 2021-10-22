@@ -1,5 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
-	dht11.c - template for char device, char device interface
+	dht11.c - a driver for dht11 with kernel HRT.
 
 	Copyright (C) 2021 Zheng Hua <writeforever@foxmail.com>
 
@@ -28,14 +29,8 @@
 #include <linux/module.h>
 #include <linux/uaccess.h>
 
-/**
- * Replace DHT11 or dht11 to your device name.
- */
+#include "dht11.h"
 
-/* DEFINE */
-/*#define DHT11_IOC_MAGIC		'd'
-#define dht11_IOCINIT			_IOW(dht11_IOC_MAGIC, 0, int)
-#define dht11_IOCWVALUE		_IOWR(dht11_IOC_MAGIC, 1, void *)*/
 #define drv_inf(msg) printk(KERN_INFO "%s: "msg ,__func__)
 #define drv_dbg(msg) printk(KERN_DEBUG "%s: "msg, __func__)
 #define drv_wrn(msg) printk(KERN_WARNING "%s: "msg, __func__)
@@ -47,7 +42,11 @@
 
 /* Make your device type here */
 struct dht11_device{
-	/* e.g. unsigned char vgram[1024]; */
+	struct mutex lock;
+	
+	int				temperature;
+	int				humidity;
+
 	struct cdev cdev;
 };
 static struct dht11_device *dht11_devp;
@@ -84,6 +83,26 @@ static int dht11_driver_release (struct inode *inode, struct file *filp);
 static int dht11_init(void)
 {
 	int ret=0;
+	pr_info("%s", __func__);
+	/* configure data pin as output&input */
+	
+	return ret;
+}
+
+static int dht11_deinit(void)
+{
+	int ret=0;
+	pr_info("%s", __func__);
+	/* configure data pin as output&input */
+	
+	return ret;
+}
+
+static uint8_t dht11_read_byte(void)
+{
+	int ret=0;
+	pr_info("%s", __func__);
+
 	return ret;
 }
 /* cdev self operations end */
@@ -94,7 +113,7 @@ static struct file_operations dht11_fops = {
 	.owner   = THIS_MODULE,
 	.open    = dht11_driver_open,
 	.read    = dht11_driver_read,
-	.write   = dht11_driver_write,
+	/*.write   = dht11_driver_write,*/
 	.unlocked_ioctl   = dht11_driver_unlocked_ioctl,
 	.release = dht11_driver_release,
 };
@@ -102,8 +121,12 @@ static struct file_operations dht11_fops = {
 
 static int dht11_driver_open(struct inode *inode, struct file *filp)
 {
+	int ret;
 	/*e.g. call dht11_init*/
-	drv_dbg("openned.");
+	drv_dbg("%s: device openned.", __func__);
+
+	dht11_init();
+	
 	return 0;
 }
 
@@ -116,16 +139,21 @@ static ssize_t dht11_driver_read(struct file *filp, char __user *buf, size_t len
 	return ret;
 }
 
-static ssize_t dht11_driver_write(struct file *filp, const char __user *buf, size_t len, loff_t *offset)
+/*static ssize_t dht11_driver_write(struct file *filp, const char __user *buf, size_t len, loff_t *offset)
 {
 	int ret;
 	drv_dbg("writing.");
 	ret = copy_from_user(kernel_buf, buf, len);
 	return ret;
-}
+}*/
 
 static long dht11_driver_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
+	int ret;
+	
+	switch(cmd){
+		case DHT11_
+	}
 	return 0;
 }
 
@@ -193,7 +221,7 @@ static __init int dht11_driver_init(void)
 		dht11_major = MAJOR(dht11_devid);
 	}
 
-	/* As for now. No driver operation has been connected to these device numbers. */
+	/* As for now. None driver operation has been connected to these device numbers. */
 	if(result<0){
 		printk(KERN_WARNING "%s: can't get major %d\n",__func__, dht11_major);
 		goto fail;
@@ -210,7 +238,7 @@ static __init int dht11_driver_init(void)
 	result = dht11_setup_cdev(&dht11_devp->cdev);
 	
 	dht11_class  = class_create(THIS_MODULE, DHT11_CLASS);
-	if(IS_ERR(dht11_class)){
+	if(unlikely(IS_ERR(dht11_class))){
 		return PTR_ERR(dht11_class);
 	}
 	dht11_dev = device_create(dht11_class, NULL, 
