@@ -1,0 +1,1 @@
+cmd_/home/huazheng/git-repo/applications/mod_repo/tests/sleep/test_wait_queue/modules.order := {   echo /home/huazheng/git-repo/applications/mod_repo/tests/sleep/test_wait_queue/demo_wait_queue.ko; :; } | awk '!x[$$0]++' - > /home/huazheng/git-repo/applications/mod_repo/tests/sleep/test_wait_queue/modules.order

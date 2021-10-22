@@ -20,10 +20,10 @@
 
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/gpio.h> 	/* for kmalloc */
-#include <linux/kernel.h>	/* container_of */
-#include <linux/list.h>	/* for list */
-#include <linux/wait.h>	/* for wait queue */
+#include <linux/sched.h>
+#include <linux/time.h>
+#include <linux/delay.h>
+#include <linux/workqueue.h>
 
 #define drv_inf(msg) printk(KERN_INFO "%s: "msg ,__func__)
 #define drv_dbg(msg) printk(KERN_DEBUG "%s: "msg, __func__)
@@ -34,23 +34,43 @@
 
 #ifdef TYPE_STATIC
 #undef TYPE_DYNAMIC
-DECLARE_WAIT_QUEUE_HEAD
+static DECLARE_WAIT_QUEUE_HEAD(my_wq);
+static int condition = 0;
 #endif
+
+static struct work_struct wrk;
+
+static void work_handler(struct work_struct *work)
+{
+	printk("Waitqueue module handler %s\n", __func__);
+	msleep(5000);
+	printk("Wake up the sleeping module\n");
+	// condition=1;
+	wake_up_interruptible(&my_wq);
+}
 
 static __init int demo_init(void)
 {
 #ifdef TYPE_DYNAMIC
 #undef TYPE_STATIC
-
 #endif
+
+	printk("Wait queue example\n");
+
+	INIT_WORK(&wrk, work_handler);
+	schedule_work(&wrk);
+
+	printk("Going to sleep %s\n", __func__);
+	wait_event_interruptible(my_wq, condition!=0);
+
+	pr_info("woken up by the work job\n");
 
     return 0;
 }
 
 static __exit void demo_exit(void)
 {
-    printk(KERN_INFO "%s Exiting.\n", __func__);
-
+    printk(KERN_INFO "waitqueue example cleanup %s Exiting.\n", __func__);
 }
 
 module_init(demo_init);
