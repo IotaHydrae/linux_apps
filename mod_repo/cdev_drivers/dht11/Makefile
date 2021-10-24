@@ -1,5 +1,5 @@
 # Configure tools
-MOD_DIR:=..
+MOD_DIR:=../..
 SCRIPTS_DIR:=$(MOD_DIR)/scripts
 
 # Tools
@@ -25,6 +25,9 @@ insmod: $(MODULE_NAME).ko
 
 rmmod: $(MODULE_NAME.ko)
 	sudo rmmod $(MODULE_NAME)
+	sh $(KLOGCAT)
+
+log:
 	sh $(KLOGCAT)
 
 #tar:$(MODULE_NAME).ko

@@ -123,7 +123,7 @@ static int dht11_driver_open(struct inode *inode, struct file *filp)
 {
 	int ret;
 	/*e.g. call dht11_init*/
-	drv_dbg("%s: device openned.", __func__);
+	drv_dbg("device openned.");
 
 	dht11_init();
 	
@@ -152,7 +152,14 @@ static long dht11_driver_ioctl(struct file *filp, unsigned int cmd, unsigned lon
 	int ret;
 	
 	switch(cmd){
-		case DHT11_
+	case DHT11_IOCINIT:
+		dht11_init();
+		break;
+	case DHT11_IOCREADBYTE:
+		dht11_read_byte();
+		break;
+	default:
+		break;
 	}
 	return 0;
 }

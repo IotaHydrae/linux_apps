@@ -19,6 +19,6 @@
 */
 
 /* ioctl defines */
-#define DHT11_IOC_MAGIC		'd'
+#define DHT11_IOC_MAGIC			'd'
 #define DHT11_IOCINIT			_IOW(DHT11_IOC_MAGIC, 0, int)
-#define DHT11_IOCREADBYTE		_IOWR(DHT11_IOC_MAGIC, 1, uint8_t)
+#define DHT11_IOCREADBYTE		_IOWR(DHT11_IOC_MAGIC, 1, unsigned char)

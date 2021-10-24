@@ -4659,6 +4659,6 @@ int main(int argc, const char *argv[])
 	init_default_display();
 
 	pbuf = get_display_buffer();
-	printf("%d\n",pbuf->iXres);
+	printf("resolution: %dx%d\n",pbuf->iXres, pbuf->iYres);
 	lcd_put_ascii(100, 100, 'B');
 }
