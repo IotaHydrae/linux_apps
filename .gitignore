@@ -5,3 +5,5 @@
 .mod.o
 .order
 .symvers
+build
+**build
