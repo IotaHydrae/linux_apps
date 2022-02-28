@@ -7,39 +7,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
+#include <time.h>
 
 #include "at24cxx.h"
 
-static struct at24cxx_handle handle;
+struct at24cxx_handle handle;
 
-AT24CXX::AT24CXX(__u32 bus, __u32 addr)
+AT24CXX::AT24CXX(char *bus_name, __u32 addr)
 {
+	printf("in AT24CXX con\n");
+	handle.device_addr = addr;
+	strncpy(handle.bus_name, bus_name, sizeof(handle.bus_name)/sizeof(char));
 
-    sprintf(handle.bus_path, "/dev/i2c-%d", bus);
-    printf("%s\n", handle.bus_path);
-    printf("%d\n", handle.bus_file);
-
-    if ((handle.bus_file = open(handle.bus_path, O_RDWR) < 0))
-    {
-        fprintf(stderr, "error, cannot open i2c bus: %d", bus);
-        handle.bus_file = -1;
-        exit(1);
-    }
-
-    handle.bus_number = bus;
-    handle.device_addr = addr;
-
-    printf("%d, %d, %d\n",handle.bus_file, bus , addr);
-
-    if(ioctl(handle.bus_file, I2C_SLAVE, handle.device_addr) < 0){
-        perror("error, failed to set deivce address!");
-        // exit(1);
-    }
+	init();
 }
 
 AT24CXX::~AT24CXX()
 {
+	printf("out AT24CXX con\n");
     close(handle.bus_file);
+}
+
+__s32 AT24CXX::init()
+{
+	int file;
+
+	file = open("/dev/i2c-0", O_RDWR);
+	if(file < 0){
+		fprintf(stderr, "failed to open i2c bus\n");
+		return -1;
+	}
+	handle.bus_file = file;
+
+	if(ioctl(file, I2C_SLAVE, 0x50) < 0){
+        perror("error, failed to set deivce address!");
+        // exit(1);
+    }
 }
 
 __s32 AT24CXX::detect()
@@ -66,6 +70,21 @@ __s32 AT24CXX::detect()
         printf("Oops, the needed functionality (SMBus write_quick function) is not available!\n");
         return -1;
     }
+}
+
+__s32 AT24CXX::waiting_write_cycle()
+{
+	int ret;
+	struct timespec ts;
+	/* waiting for at24cxx internal write cycle. 10ms max */
+	ts.tv_sec =0;
+	ts.tv_nsec = 10 * 1000 * 1000;
+	ret = nanosleep(&ts, NULL);
+	if(ret < 0){
+		fprintf(stderr, "cannot sleep.\n");
+		perror("ERRNO: ");
+		return -errno;
+	}
 }
 
 /*

@@ -102,7 +102,7 @@ int main(int argc, char const *argv[])
 		return -1;
 	}
 	
-	fprintf(stderr, "i2c bus openned.\n");
+	fprintf(stderr, "i2c bus openned. fd:%d\n", file);
 
     ret = ioctl(file, I2C_SLAVE_FORCE, 0x50);
 	if(ret < 0){

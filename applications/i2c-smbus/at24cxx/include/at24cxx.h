@@ -11,14 +11,12 @@
 struct at24cxx_handle
 {
     __u32 device_addr;
-    __u32 bus_number;
     int bus_file;
-    char bus_path[20];
+	char bus_name[20];
 
     at24cxx_handle()
     {
         device_addr = 255;
-        bus_number = 255;
         bus_file = -1;
     }
 };
@@ -26,16 +24,20 @@ struct at24cxx_handle
 class AT24CXX {
 
 private:
+	int fd;
     struct at24cxx_handle handle;
     __s32 access(char read_write, __u8 Waddr, int size, union i2c_smbus_data *data);
 
 protected:
 
 public:
-    AT24CXX(__u32 bus, __u32 addr);
+    AT24CXX(char *bus_name, __u32 addr);
     ~AT24CXX();
 
+	__s32 init();
     __s32 detect();
+
+	__s32 waiting_write_cycle();
 
     __s32 write_byte_data(__u32 Waddr, __u32 value);
 
