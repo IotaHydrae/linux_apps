@@ -40,9 +40,9 @@ __s32 AT24CXX::init()
 	}
 	handle.bus_file = file;
 
-	if(ioctl(file, I2C_SLAVE, 0x50) < 0){
+	if(ioctl(file, I2C_SLAVE, handle.device_addr) < 0){
         perror("error, failed to set deivce address!");
-        // exit(1);
+        return -errno;
     }
 }
 
@@ -96,7 +96,7 @@ struct i2c_smbus_ioctl_data {
 	union i2c_smbus_data *data;
 };
 */
-__s32 AT24CXX::access(char read_write, __u8 Waddr, int size, union i2c_smbus_data *data)
+__s32 AT24CXX::smbus_access(char read_write, __u8 Waddr, int size, union i2c_smbus_data *data)
 {
     i2c_smbus_ioctl_data msgs;
     __s32 ret;
@@ -116,7 +116,7 @@ __s32 AT24CXX::write_byte_data(__u32 Waddr, __u32 value)
 {
     union i2c_smbus_data data;
     data.byte = value;
-    return access(I2C_SMBUS_WRITE, Waddr, I2C_SMBUS_BYTE_DATA, &data);
+    return smbus_access(I2C_SMBUS_WRITE, Waddr, I2C_SMBUS_BYTE_DATA, &data);
 }
 
 __u32 AT24CXX::random_read(__u32 Waddr)
@@ -124,7 +124,7 @@ __u32 AT24CXX::random_read(__u32 Waddr)
     union i2c_smbus_data data;
     __s32 ret;
 
-    ret = access(I2C_SMBUS_READ, Waddr, I2C_SMBUS_BYTE_DATA, &data);
+    ret = smbus_access(I2C_SMBUS_READ, Waddr, I2C_SMBUS_BYTE_DATA, &data);
     if(ret < 0){
         return -1;
     }
