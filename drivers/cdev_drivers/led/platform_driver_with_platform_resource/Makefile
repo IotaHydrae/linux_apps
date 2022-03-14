@@ -14,4 +14,4 @@ clean:
 # obj-m+=eeprom.o
 # obj-m+=test_eep.o
 
-obj-m+=cdev_template.o
+obj-m+=led.o
