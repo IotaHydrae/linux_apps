@@ -15,3 +15,4 @@ clean:
 # obj-m+=test_eep.o
 
 obj-m+=led.o
+obj-m+=led_resource.o

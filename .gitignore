@@ -1,9 +1,11 @@
 .vscode
-.ko
-.o
-.mod
-.mod.o
-.order
-.symvers
+*.ko
+*.o
+*.cmd
+*.mod
+*.mod.o
+*.mod.c
+*.order
+*.symvers
 build
 **build

@@ -12,7 +12,7 @@ static int led_driver_probe(struct platform_device *pdev)
 
 static int led_driver_remove(struct platform_device *pdev)
 {
-	printk(KERN_INFO "into %s\n", __func__);
+	pr_info("into %s\n", __func__);
 
 	return 0;
 }
