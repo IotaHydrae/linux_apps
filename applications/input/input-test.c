@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -19,13 +20,13 @@
 #define DEFAULT_INPUT_DEVICE "/dev/input/event0"
 
 /* Input device */
-typedef struct
+struct indev_struct
 {
     /*  */
     int fd;
 
     struct input_event indev_event;
-} indev_struct;
+};
 
 static struct indev_struct indev;
 
@@ -38,6 +39,7 @@ void input_dev_sighandler(int signal)
 
 int main(int argc, char **argv)
 {
+	int flags;
 
 	indev.fd = open(DEFAULT_INPUT_DEVICE, O_RDWR);
 	printf("Successfully open device in normal mode.\n");
