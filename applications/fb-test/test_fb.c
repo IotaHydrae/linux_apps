@@ -4634,7 +4634,7 @@ static unsigned char *hzkmem;
 
 static unsigned int line_width,pixel_width;
 
-void lcd_put_pixel(int x, int y,unsigned int color)
+void lcd_put_pixel(int x, int y, unsigned int color)
 {
 	unsigned char *pen_8 = fb_base + y*line_width + x*pixel_width;
 	unsigned short *pen_16;
@@ -4674,7 +4674,7 @@ void lcd_put_pixel(int x, int y,unsigned int color)
 	}
 }
 
-void lcd_put_ascii(int x, int y, unsigned char c)
+void lcd_put_ascii(int x, int y, unsigned int color, unsigned char c)
 {
 	unsigned char *dots = (unsigned char *)&fontdata_8x16[c*16];
 	int row, column;
@@ -4687,7 +4687,7 @@ void lcd_put_ascii(int x, int y, unsigned char c)
 		{
 			if(byte & (1 << column))
 			{
-				lcd_put_pixel(x+7-column, y+row, 0xFFFFFF);
+				lcd_put_pixel(x+7-column, y+row, color);
 			}
 			else
 			{
@@ -4698,7 +4698,7 @@ void lcd_put_ascii(int x, int y, unsigned char c)
 }
 
 
-int lcd_put_string(int x, int y, unsigned char *str)
+int lcd_put_string(int x, int y, unsigned int color, unsigned char *str)
 {
 	int len;
 	int index;
@@ -4717,7 +4717,7 @@ int lcd_put_string(int x, int y, unsigned char *str)
 		
 		if((dots & 0x80) != 0x80)
 		{
-			lcd_put_ascii(x + temp_index * 8, y, dots);
+			lcd_put_ascii(x + temp_index * 8, y, color, dots);
 			temp_index++;
 		}
 		
@@ -4747,7 +4747,7 @@ int main(int argc, char **argv)
 	unsigned int screen_size;
 
 	if(argc < 2){
-		printf("usage: %s [x] [y] <str>\n",argv[0]);
+		printf("usage: %s [x] [y] [color] <str>\n",argv[0]);
 		return -1;
 	}
 	
@@ -4789,9 +4789,11 @@ int main(int argc, char **argv)
 	printf("%s, cleaned screen\n.",__func__);
 
 	if(argc == 4)
-	lcd_put_string(atoi(argv[1]) , atoi(argv[2]) , argv[3]);
+	lcd_put_string(atoi(argv[1]) , atoi(argv[2]) , 0xFFFFFF,argv[3]);
+	else if(argc == 5)
+	lcd_put_string(atoi(argv[1]) , atoi(argv[2]) , atoi(argv[3]), argv[4]);
 	else
-	lcd_put_string(0, 0, argv[1]);
+	lcd_put_string(0, 0, 0xFFFFFF,argv[1]);
 	
 	munmap(fb_base, screen_size);
 	close(fd_fb);
