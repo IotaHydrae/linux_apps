@@ -29,11 +29,6 @@
 #define ENABLE(x)		((x) << 0)
 
 /* LRADC_INTC and LRADC_INTS bits */
-#define CHAN1_KEYUP_IRQ		BIT(12)
-#define CHAN1_ALRDY_HOLD_IRQ	BIT(11)
-#define CHAN1_HOLD_IRQ		BIT(10)
-#define	CHAN1_KEYDOWN_IRQ	BIT(9)
-#define CHAN1_DATA_IRQ		BIT(8)
 #define CHAN0_KEYUP_IRQ		BIT(4)
 #define CHAN0_ALRDY_HOLD_IRQ	BIT(3)
 #define CHAN0_HOLD_IRQ		BIT(2)
@@ -47,18 +42,41 @@ struct suniv_f1c100s_lradc_data {
 	u32 vref;
 };
 
+static irqreturn_t suniv_f1c100s_lradc_irq(int irq, void *dev_id)
+{
+	struct suniv_f1c100s_lradc_data *lradc = dev_id;
+
+	u32 ints, val, voltage;
+
+	ints  = readl(lradc->base + LRADC_INTS);
+
+	if(ints & CHAN0_KEYDOWN_IRQ){
+		val = readl(lradc->base + LRADC_DATA0) & 0x3f;
+		voltage = val * lradc->vref / 63;
+		printk(KERN_WARNING "adckey val: %d, voltage: %d\n", val, voltage);	
+	}
+
+	writel(ints, lradc->base + LRADC_INTS);
+	
+	return IRQ_HANDLED;
+}
+
+
 static int suniv_f1c100s_lradc_probe(struct platform_device *pdev)
 {
 	struct suniv_f1c100s_lradc_data *lradc;
 	struct device *dev = &pdev->dev;
 	int error;
 
-	dev_dbg(dev, "%s", __func__);
+	printk("%s", __func__);
 	lradc = devm_kzalloc(dev, sizeof(struct suniv_f1c100s_lradc_data), GFP_KERNEL);
+	if(!lradc)
+		return -ENOMEM;
 
 	lradc->vref_supply = devm_regulator_get(dev, "vref");
 	if (IS_ERR(lradc->vref_supply))
 		return PTR_ERR(lradc->vref_supply);
+	printk("%s, got the vref", __func__);
 
 	lradc->dev = dev;
 
@@ -66,11 +84,23 @@ static int suniv_f1c100s_lradc_probe(struct platform_device *pdev)
 				  platform_get_resource(pdev, IORESOURCE_MEM, 0));
 	if(IS_ERR(lradc->base))
 		return PTR_ERR(lradc->base);
+	printk("%s, got the lradc base", __func__);
+
+	/*
+	 * Set sample time to 4 ms / 250 Hz. Wait 2 * 4 ms for key to
+	 * stabilize on press, wait (1 + 1) * 4 ms for key release
+	 */
+	writel(FIRST_CONVERT_DLY(2) | LEVELA_B_CNT(1) | HOLD_EN(1) |
+		SAMPLE_RATE(0) | ENABLE(1) | LEVELB_VOL(3), lradc->base + LRADC_CTRL);
+
+	writel(CHAN0_KEYUP_IRQ | CHAN0_KEYDOWN_IRQ, lradc->base + LRADC_INTC);
+
+
+	lradc->vref = regulator_get_voltage(lradc->vref_supply) * 2/3;
 
 	error = devm_request_irq(dev, platform_get_irq(pdev, 0),
 			suniv_f1c100s_lradc_irq, 0,
-			"suniv-f1c100s-lradc-keys", lradc);
-	
+			"suniv-f1c100s-lradc-keys", lradc);	
 	
 	return 0;
 }
@@ -78,6 +108,7 @@ static int suniv_f1c100s_lradc_probe(struct platform_device *pdev)
 
 static const struct of_device_id suniv_f1c100s_lradc_of_match[] = {
 	{ .compatible = "allwinner,suniv-f1c100s-lradc-keys" },
+	{}
 };
 MODULE_DEVICE_TABLE(of, suniv_f1c100s_lradc_of_match);
 
