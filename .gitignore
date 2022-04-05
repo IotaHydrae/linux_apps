@@ -8,6 +8,7 @@
 *.order
 *.symvers
 *.out
+*.exe
 
 build
 **build
