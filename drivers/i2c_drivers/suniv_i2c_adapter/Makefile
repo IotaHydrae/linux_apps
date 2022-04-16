@@ -5,7 +5,7 @@ KERN_DIR:=/lib/modules/$(shell uname -r)/build
 # users kernel dir
 # KERN_DIR:=/home/user/linux
 
-MODULE_NAME:=template
+MODULE_NAME:=i2c-suniv
 
 all:
 	make -C $(KERN_DIR) M=`pwd` modules 

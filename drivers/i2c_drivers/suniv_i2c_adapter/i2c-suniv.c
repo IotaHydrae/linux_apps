@@ -66,7 +66,7 @@ struct suniv_i2c_regs suniv_i2c_regs_f1c100s = {
 
 static irqreturn_t suniv_i2c_isr(int irq, void *dev_id)
 {
-
+	return IRQ_HANDLED;
 }
 
 /*
@@ -74,9 +74,9 @@ static irqreturn_t suniv_i2c_isr(int irq, void *dev_id)
  * processed, or a negative value on error
  */
 static int suniv_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
-			   				  int num);
+			   				  int num)
 {
-
+	return 0;
 }
 							  
 /* To determine what the adapter supports */
@@ -86,7 +86,7 @@ static u32 suniv_i2c_functionality(struct i2c_adapter *adap)
 }
 
 static const struct i2c_algorithm suniv_i2c_algo = {
-	.master_xfer = suniv_i2c_xfer,
+	.master_xfer   = suniv_i2c_xfer,
 	.functionality = suniv_i2c_functionality,
 };
 
@@ -106,15 +106,15 @@ static int suniv_i2c_probe(struct platform_device *pdev)
 		return PTR_ERR(i2c_data->base);
 	}
 
-	init_waitqueue_head(i2c_data->wait_queue);
-	spin_lock_init(i2c_data->lock);
+	init_waitqueue_head(&i2c_data->wait_queue);
+	spin_lock_init(&i2c_data->lock);
 
 	i2c_data->irq = platform_get_irq(pdev, 0);
 	if(i2c_data->irq < 0){
 		return -EINVAL;
 	}
 
-	memcpy(i2c_data->reg_offsets, &suniv_i2c_regs_f1c100s, sizeof(struct suniv_i2c_regs));
+	memcpy(&i2c_data->reg_offsets, &suniv_i2c_regs_f1c100s, sizeof(struct suniv_i2c_regs));
 
 	i2c_data->adapter.owner       = THIS_MODULE;
 	i2c_data->adapter.dev.parent  = &pdev->dev;
@@ -123,7 +123,7 @@ static int suniv_i2c_probe(struct platform_device *pdev)
 	i2c_data->adapter.dev.of_node = pdev->dev.of_node;
 
 	platform_set_drvdata(pdev, i2c_data);
-	i2c_set_adapdata(i2c_data->adapter, i2c_data);
+	i2c_set_adapdata(&i2c_data->adapter, i2c_data);
 
 	ret = devm_request_irq(&pdev->dev, i2c_data->irq, suniv_i2c_isr, 0, 
 						   SUNIV_CONTLR_NAME "adapter", i2c_data);
@@ -136,20 +136,20 @@ static int suniv_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const of_device_id suniv_i2c_of_match_table[] = {
+static const struct of_device_id suniv_i2c_of_match_table[] = {
 	{.compatible = "allwinner,suniv-f1c100s-i2c", .data = &suniv_i2c_regs_f1c100s},
 	{.compatible = "allwinner,suniv-f1c200s-i2c", .data = &suniv_i2c_regs_f1c100s},
 	{},
 };
 MODULE_DEVICE_TABLE(of, suniv_i2c_of_match_table);
 
-static struct platform_driver suniv_i2c_driver[] = {
+static struct platform_driver suniv_i2c_driver = {
 	.probe  = suniv_i2c_probe,
 	.remove = suniv_i2c_remove,
 	.driver = {
 		.name = "suniv_i2c",
-		.of_match_table = of_match_ptr(suniv_i2c_of_match_table);
-	};
+		.of_match_table = of_match_ptr(suniv_i2c_of_match_table),
+	},
 };
 
 module_platform_driver(suniv_i2c_driver);
