@@ -61,7 +61,6 @@ static irqreturn_t suniv_f1c100s_lradc_irq(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-
 static int suniv_f1c100s_lradc_probe(struct platform_device *pdev)
 {
 	struct suniv_f1c100s_lradc_data *lradc;
@@ -80,8 +79,7 @@ static int suniv_f1c100s_lradc_probe(struct platform_device *pdev)
 
 	lradc->dev = dev;
 
-	lradc->base = devm_ioremap_resource(dev,
-				  platform_get_resource(pdev, IORESOURCE_MEM, 0));
+	lradc->base = devm_platform_ioremap_resource(pdev, 0);
 	if(IS_ERR(lradc->base))
 		return PTR_ERR(lradc->base);
 	printk("%s, got the lradc base", __func__);
@@ -101,7 +99,7 @@ static int suniv_f1c100s_lradc_probe(struct platform_device *pdev)
 	error = devm_request_irq(dev, platform_get_irq(pdev, 0),
 			suniv_f1c100s_lradc_irq, 0,
 			"suniv-f1c100s-lradc-keys", lradc);	
-	
+			
 	return 0;
 }
 
