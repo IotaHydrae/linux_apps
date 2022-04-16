@@ -1,9 +1,12 @@
 
 # local kernel build dir
-KERN_DIR:=/lib/modules/$(shell uname -r)/build
+# KERN_DIR:=/lib/modules/$(shell uname -r)/build
 
 # users kernel dir
-# KERN_DIR:=/home/user/linux
+#
+DIR_PREFIX=/home/huazheng/hamsterbear/software/bsp
+KERN_VER:=5.17
+KERN_DIR:=$(DIR_PREFIX)/linux-$(KERN_VER)
 
 MODULE_NAME:=ads1015
 
