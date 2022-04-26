@@ -155,5 +155,5 @@ static struct platform_driver suniv_i2c_driver = {
 module_platform_driver(suniv_i2c_driver);
 
 MODULE_AUTHOR("IotaHydrae writeforever@foxmail.com");
-MODULE_DESCRIPTION("Suniv SoC family host bridge i2c ctlr driver");
+MODULE_DESCRIPTION("Suniv SoC family host bridge i2c adapter driver");
 MODULE_LICENSE("GPL");
