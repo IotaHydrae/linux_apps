@@ -76,6 +76,9 @@ static irqreturn_t suniv_i2c_isr(int irq, void *dev_id)
 static int suniv_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 			   				  int num)
 {
+	for(int i = 0; i<msgs->len;i++){
+
+	}
 	return 0;
 }
 							  
@@ -128,7 +131,18 @@ static int suniv_i2c_probe(struct platform_device *pdev)
 	ret = devm_request_irq(&pdev->dev, i2c_data->irq, suniv_i2c_isr, 0, 
 						   SUNIV_CONTLR_NAME "adapter", i2c_data);
 	
-	return 0;
+	if(ret) {
+		dev_err(&pdev->dev, "Failed to request irq %d\n", i2c_data->irq);
+		return ret;
+	} else if (ret = i2c_add_numbered_adapter(&i2c_data->adapter) != 0) {
+		dev_err(&pdev->dev, "Failed to add adapter\n");
+		goto err_free_irq;
+	}
+
+err_free_irq:
+	free_irq(drv_data->irq, i2c_data);
+
+	return ret;
 }
 
 static int suniv_i2c_remove(struct platform_device *pdev)
