@@ -14,10 +14,20 @@ struct var_data{
 
 int main(int argc, char **argv)
 {
+    int a = 20;
     struct var_data s;
+    double x[a];
+
+    s.len = 20;
 
     for(int i=0;i<s.len;i++)
-        printf("%02x", s.data[i]);
+        printf("%02x, %p\n", s.data[i], &s.data[i]);
+
+    for(int i=0;i<a;i++)
+        x[i] = i;
+    
+    for(int i=0;i<a;i++)
+        printf("%f, %p\n", x[i], &x[i]);
 
     return 0;
 }
