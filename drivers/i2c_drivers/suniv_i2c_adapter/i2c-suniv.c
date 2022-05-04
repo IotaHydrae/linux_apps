@@ -53,16 +53,21 @@ struct suniv_i2c_data {
 };
 
 struct suniv_i2c_regs suniv_i2c_regs_f1c100s = {
-	.addr  = 0x00,
-	.xaddr = 0x04,
-	.data  = 0x08,
-	.cntr  = 0x0c,
-	.stat  = 0x10,
-	.ccr   = 0x14,
+	.addr  = 0x00,	/* TWI Slave Address Register */
+	.xaddr = 0x04,	/* TWI Extend Address Register */
+	.data  = 0x08,	/* TWI Data Register */
+	.cntr  = 0x0c,	/* TWI Control Register */
+	.stat  = 0x10,	/* TWI Status Register */
+	.ccr   = 0x14,	/*  */
 	.srst  = 0x18,
 	.efr   = 0x1c,
 	.lcr   = 0x20,
 };
+
+static void suniv_i2c_send_start(struct suniv_i2c_data *i2c_data)
+{
+	
+}
 
 static irqreturn_t suniv_i2c_isr(int irq, void *dev_id)
 {
@@ -76,8 +81,8 @@ static irqreturn_t suniv_i2c_isr(int irq, void *dev_id)
 static int suniv_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 			   				  int num)
 {
-	for(int i = 0; i<msgs->len;i++){
-
+	for(int i = 0; i<msgs->len;i++) {
+		
 	}
 	return 0;
 }
