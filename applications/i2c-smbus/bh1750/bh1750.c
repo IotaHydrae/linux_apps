@@ -129,7 +129,8 @@ int main(int argc, char **argv)
         low_byte = raw_data & 0xFF;
 
         /* convert raw data to lux */
-        lux = (high_byte * 256 + low_byte) / 1.2;
+        // lux = (high_byte * 256 + low_byte) / 1.2;
+        lux = raw_data / 1.2;
         printf("lux: %f\n", lux);
     }
 
