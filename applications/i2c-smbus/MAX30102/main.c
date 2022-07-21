@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -13,22 +14,7 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 
-static int smbus_access(int fd, char read_write, __u8 Waddr, int size, union i2c_smbus_data *data)
-{
-    struct i2c_smbus_ioctl_data msgs;
-
-    msgs.read_write = read_write;
-    msgs.command = Waddr;
-    msgs.size = size;
-    msgs.data = data;
-
-    if(ioctl(fd, I2C_SMBUS, &msgs) < 0){
-        perror("error, failed to access smbus");
-        return -errno;
-    }
-
-    return 0;
-}
+#include "include/MAX30102.h"
 
 int main(int argc, char **argv)
 {
@@ -47,9 +33,21 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    union i2c_smbus_data data;
-    smbus_access(fd, I2C_SMBUS_READ, 0xff, I2C_SMBUS_BYTE_DATA, &data);
-    printf("Read : 0x%x\n", data.byte);
+    printf("MAX30102 demo APP\n");
+    printf("Revision ID : 0x%x\n", max30102_read_revision_id(fd));
+    printf("PART ID : 0x%x\n", max30102_read_part_id(fd));
+
+    max30102_reset(fd);
+
+    double temp;
+    while(1) {
+        printf("=========== ");
+        temp = max30102_read_temperture(fd);
+        printf("Temperture : %0.4f\n", temp);
+        sleep(1);
+    }
+
+    close(fd);
 
     return 0;
 }
