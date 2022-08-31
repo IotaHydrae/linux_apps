@@ -43,12 +43,13 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 
-#include "include/SSD1306.h"
+#include "include/ssd1306.h"
 
 int main(int argc, char **argv)
 {
     int fd;
     int rc;
+    struct timespec ts;
 
     fd = open("/dev/i2c-1", O_RDWR);
     if (fd < 0)
@@ -64,39 +65,52 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    ts.tv_nsec = 500 * 1000 * 1000;
     ssd1306_init(fd);
-#if 1
+#if 0
     while (1)
     {
-        for (int x = 0; x < 128; x++)
-        {
-            for (int y = 0; y < 32; y++)
-            {
-                oled_set_pixel(fd, x, y, 0xff);
-            }
-        }
+        for (int x = 0; x < SSD1306_HOR_RES_MAX; x++)
+            for (int y = 0; y < SSD1306_VER_RES_MAX; y++)
+                oled_set_pixel(fd, x, y, 1);
+
+        oled_flush(fd);
+        // nanosleep(&ts, NULL);
+        sleep(1);
+
+        for (int x = 0; x < SSD1306_HOR_RES_MAX; x++)
+            for (int y = 0; y < SSD1306_VER_RES_MAX; y++)
+                oled_set_pixel(fd, x, y, 0);
+
         oled_flush(fd);
         sleep(1);
 
-        for (int x = 0; x < 128; x++)
-        {
-            for (int y = 0; y < 32; y++)
-            {
-                oled_set_pixel(fd, x, y, 0x00);
-            }
-        }
-        oled_flush(fd);
-        sleep(1);
     }
 #else
-    for (int x = 0; x < 128; x++)
-    {
-        for (int y = 0; y < 32; y++)
-        {
-            ssd1306_write_data(fd, 0xff);
-        }
-    }  
-    while(1);
+    // for (int x = 0; x < 128; x += 8)
+    // {
+    //     for (int y = 0; y < 64; y += 16)
+    //     {
+    //         oled_put_ascii(fd, x, y, 'a');
+    //     }
+    // }
+    while(1){
+        oled_clear(fd);
+
+        oled_putascii_string(fd, 0, 0, "Hello, World!");
+        oled_flush(fd);
+
+        // oled_clear(fd);
+        oled_putascii_string(fd, 5, 20, "Hello, World!");
+        oled_flush(fd);
+
+        // oled_clear(fd);
+        oled_putascii_string(fd, 10, 40, "Hello, World!");
+        oled_flush(fd);
+    }
+
+
+
 #endif
 
     close(fd);
