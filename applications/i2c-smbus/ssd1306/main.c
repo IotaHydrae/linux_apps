@@ -45,6 +45,13 @@
 
 #include "include/ssd1306.h"
 
+#define TEST_DOC "This document describes how to write an ALSA \
+(Advanced Linux Sound Architecture) driver. The document focuses \
+mainly on PCI soundcards. In the case of other device types, the \
+API might be different, too. However, at least the ALSA kernel \
+API is consistent, and therefore it would be still a bit help \
+for writing them."
+
 int main(int argc, char **argv)
 {
     int fd;
@@ -96,20 +103,9 @@ int main(int argc, char **argv)
     // }
     while(1){
         oled_clear(fd);
-
-        oled_putascii_string(fd, 0, 0, "Hello, World!");
-        oled_flush(fd);
-
-        // oled_clear(fd);
-        oled_putascii_string(fd, 5, 20, "Hello, World!");
-        oled_flush(fd);
-
-        // oled_clear(fd);
-        oled_putascii_string(fd, 10, 40, "Hello, World!");
+        oled_putascii_string(fd, 0, 0, TEST_DOC);
         oled_flush(fd);
     }
-
-
 
 #endif
 

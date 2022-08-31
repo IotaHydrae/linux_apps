@@ -42,7 +42,9 @@
 #include "ssd1306.h"
 
 static __u8 oled_buffer[SSD1306_BUFFER_SIZE] = {0}; /* display buffer */
-#define DEFAULT_FONT "6x10"
+// #define DEFAULT_FONT "Acorn8x8"
+// #define DEFAULT_FONT "MINI4x6"
+#define DEFAULT_FONT "PEARL8x8"
 
 /**
  * @brief easy smbus access
@@ -146,13 +148,13 @@ void ssd1306_set_pos(int fd, __u8 page, __u8 col)
 void oled_flush(int fd)
 {
 	__u8 page, col;
-	struct timespec ts;
+	// struct timespec ts;
 
-	ts.tv_nsec = 50;
+	// ts.tv_nsec = 5;
 
 	for (page = 0; page < SSD1306_PAGE_SIZE; page++)
 		for (col = 0; col < SSD1306_HOR_RES_MAX; col++)
-			if (oled_buffer[OFFSET(page, col)] != 0x00)
+			// if (oled_buffer[OFFSET(page, col)] != 0x00)
 			{
 				ssd1306_set_pos(fd, page, col);
 				ssd1306_write_data(fd, oled_buffer[OFFSET(page, col)]);
@@ -170,7 +172,7 @@ void oled_clear(int fd)
 
 	for (page = 0; page < SSD1306_PAGE_SIZE; page++)
 		for (col = 0; col < SSD1306_HOR_RES_MAX; col++)
-			if (oled_buffer[OFFSET(page, col)] != 0x00)
+			// if (oled_buffer[OFFSET(page, col)] != 0x00)
 			{
 				ssd1306_set_pos(fd, page, col);
 				ssd1306_write_data(fd, 0x00);
@@ -341,7 +343,6 @@ void oled_put_ascii(int fd, __u8 x, __u8 y, __u8 c)
 {
 	int row, column;
 	__u8 byte;
-	__u8 *pen = oled_buffer;
 	struct font_desc *font = find_font(DEFAULT_FONT);
 
 	const __u8 *dots = (__u8 *)&font->data[c * font->height];
@@ -372,14 +373,21 @@ void oled_put_ascii(int fd, __u8 x, __u8 y, __u8 c)
  */
 void oled_putascii_string(int fd, __u8 x, __u8 y, __u8 *str)
 {
+	__u8 width, height;
 	struct font_desc *font = find_font(DEFAULT_FONT);
+
+	// printf("width: %d, height :%d\n", font->width, font->height);
+	width  = font->width;
+	height = font->height;
 
 	while (*str != '\0')
 	{
 		oled_put_ascii(fd, x, y, *str++);
-		x += font->width;
-		if (x == 128)
-			y += font->height;
+		x += width;
+		if (x == SSD1306_HOR_RES_MAX){
+			x = 0;
+			y += height;
+		}
 	}
 }
 #endif
