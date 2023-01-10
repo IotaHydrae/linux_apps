@@ -13,6 +13,22 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 
+enum pcf8574_pins {
+    PCF8574_P0,
+    PCF8574_P1,
+    PCF8574_P2,
+    PCF8574_P3,
+    PCF8574_P4,
+    PCF8574_P5,
+    PCF8574_P6,
+    PCF8574_P7,
+};
+
+enum pcf8574_pin_state {
+    PCF8574_PIN_LOW,
+    PCF8574_PIN_HIGH,
+};
+
 /**
  * @brief used to access the i2c bus
  * 
@@ -23,7 +39,7 @@
  * @param data data to send or read
  * @return return 0 on success, -errno on error
  */
-static int smbus_access(int fd, __u8 rw, __u8 cmd, __u32 size, union i2c_smbus_data *data)
+static int __smbus_access(int fd, __u8 rw, __u8 cmd, __u32 size, union i2c_smbus_data *data)
 {
     struct i2c_smbus_ioctl_data msgs;
 
@@ -47,12 +63,12 @@ static int smbus_access(int fd, __u8 rw, __u8 cmd, __u32 size, union i2c_smbus_d
  * @param cmd the command to send
  * @return return sumbus_access() call result
  */
-int pcf8574_write_cmd(int fd, __u8 cmd)
+static int __pcf8574_write_byte(int fd, __u8 byte)
 {
-    return smbus_access(fd, I2C_SMBUS_WRITE, cmd, I2C_SMBUS_BYTE, NULL);
+    return __smbus_access(fd, I2C_SMBUS_WRITE, byte, I2C_SMBUS_BYTE, NULL);
 }
 
-int pcf8574_read_byte(int fd)
+static int __pcf8574_read_byte(int fd)
 {
     union i2c_smbus_data data;
     struct i2c_smbus_ioctl_data msg;
@@ -65,9 +81,19 @@ int pcf8574_read_byte(int fd)
         perror("error, failed to access smbus");
         return -errno;
     }
-    printf("raw data: %d\n", data.word);
+    printf("raw data: %d\n", data.byte);
 
-    return data.word;
+    return data.byte;
+}
+
+int pcf8574_gpio_set(int fd, __u8 num, __u8 val)
+{
+    __u8 dump_val = __pcf8574_read_byte(fd);
+    
+    if (val)
+        dump_val |= (num << val);
+    else
+        dump_val &= ~(num << val);
 }
 
 int main(int argc, char **argv)
