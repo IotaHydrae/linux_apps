@@ -1,1 +1,1 @@
-linux apps
+apps
